@@ -212,8 +212,8 @@ int main() {
 
     std::string inName;
 
-    auto forest = new Forest(2);
-    forest->showTrees();
+    auto forest = new Forest(5);
+   // forest->showTrees();
     std::cout<<"Input name of Elph of exit"<<std::endl;
     std::cin>>inName;
     while(inName!="exit") {
