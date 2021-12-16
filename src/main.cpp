@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <ctime>
+#include <vector>
 
 
 class MiddleBranch{
@@ -38,7 +39,7 @@ class BigBranch
     std::string name = "None";
     bool inhabited = false;
     int number = 0;
-    MiddleBranch** middleBranchs = nullptr;
+    std::vector<MiddleBranch*> middleBranches;
 public:
 
     int getCount() const
@@ -51,13 +52,13 @@ public:
     explicit BigBranch(int inCount, int inNumber): count(inCount), number(inNumber)
     {
       //  count = 2+rand()%2;
-        middleBranchs = new MiddleBranch*[inCount];
+        middleBranches.resize(inCount);
         std::string inName;
         for(int i = 0; i < inCount; i++){
 
             std::cout<<"Input Elph Name on the middle Branch please!"<< std::endl;
             std::cin>>inName;
-            middleBranchs[i] = new MiddleBranch(this, inName,i);
+            middleBranches[i] = new MiddleBranch(this, inName, i);
         }
         std::cout<<"Input Elph Name on the Big branch please!"<< std::endl;
         std::cin >> inName;
@@ -68,17 +69,16 @@ public:
 
 
     }
-    MiddleBranch* getMiddleBranchAtIndex(int index){
-        if(this == nullptr) return nullptr;
+    MiddleBranch* getMiddleBranch(int index){
         if(index < 0) return nullptr;
         if(index>= this->count) return nullptr;
-        return this->middleBranchs[index];
+        return this->middleBranches[index];
     }
     void showElphs(){
         std::cout<<"Big branch #"<<this->getNumber()<<" on the root "<<getName()<<std::endl;
         for(int i = 0; i < count;i++){
-            std::cout<<"Big branch #"<<this->getNumber()<<" "<<"Middle branch # "<< middleBranchs[i]->getNumber()<<" "
-            <<middleBranchs[i]->getName()<<std::endl;
+            std::cout << "Big branch #" << this->getNumber() << " " << "Middle branch # " << middleBranches[i]->getNumber() << " "
+                      << middleBranches[i]->getName() << std::endl;
         }
     }
 
@@ -90,7 +90,7 @@ public:
         int sum = 0;
         if(this->inhabited) sum++;
         for(int i = 0; i < count; i++){
-            if(middleBranchs[i]->getInhabited()) sum++;
+            if(middleBranches[i]->getInhabited()) sum++;
         }
         return sum;
     }
@@ -114,7 +114,7 @@ int MiddleBranch::getNeighboursNumber() {
 class Tree{
     int count = 0;
     int number = 0;
-    BigBranch** bigBranch = nullptr;
+    std::vector<BigBranch*> bigBranches;
 public:
     int getCount(){
         return count;
@@ -124,22 +124,21 @@ public:
     }
     explicit Tree(int inCount, int inNumber):count(inCount), number(inNumber)
     {
-        bigBranch = new BigBranch*[inCount];
+        bigBranches.resize(inCount);
         for(int i = 0; i < count; i++){
             int inMiddleBranchCount = 2+rand()%2;
-            bigBranch[i] = new BigBranch(inMiddleBranchCount,i);
+            bigBranches[i] = new BigBranch(inMiddleBranchCount, i);
         }
     }
-    BigBranch* getBigBranchAtIndex(int index){
-        if(this == nullptr) return nullptr;
+    BigBranch* getBigBranch(int index){
         if(index < 0) return nullptr;
         if(index>= this->count) return nullptr;
-        return this->bigBranch[index];
+        return this->bigBranches[index];
     }
-    void showBranchs(){
+    void showBranches(){
         for(int i = 0; i < count; i++){
 
-            bigBranch[i]->showElphs();
+            bigBranches[i]->showElphs();
         }
     }
 
@@ -148,14 +147,14 @@ public:
 
 class Forest{
     int count = 0;
-    Tree** trees = nullptr;
+    std::vector<Tree*> trees;
 public:
     int getCount(){
         return count;
     }
     explicit Forest(int inCount):count(inCount)
     {
-        trees = new Tree*[count];
+        trees.resize(inCount);
 
         for(int i = 0; i < count;i++){
             int inBranchCount = 3+rand()%3;
@@ -166,49 +165,39 @@ public:
 
         for(int i = 0; i < count;i++){
             std::cout<<"Tree number #"<<trees[i]->getNumber()<<std::endl;
-            trees[i]->showBranchs();
+            trees[i]->showBranches();
         }
     }
 
-    int getNumberNeighboursFromName(std::string inName){
-        bool found = false;
+    int getNeighbourCount(std::string inName){
+
         for(int i = 0; i < count ; i++){
             for(int j = 0; j < trees[i]->getCount();j++){
-                if((trees[i]->getBigBranchAtIndex(j)->getName() == inName)&&
-                (trees[i]->getBigBranchAtIndex(j)->getInhabited())) {
-                    found = true;
-                    return trees[i]->getBigBranchAtIndex(j)->getNeighboursNumber();
-
+                if((trees[i]->getBigBranch(j)->getName() == inName) &&
+                   (trees[i]->getBigBranch(j)->getInhabited()))
+                {
+                    return trees[i]->getBigBranch(j)->getNeighboursNumber();
                 }
-                for(int k = 0; k < trees[i]->getBigBranchAtIndex(j)->getCount();k++){
-                    if((trees[i]->getBigBranchAtIndex(j)->getMiddleBranchAtIndex(k)->getName() == inName)&&
-                    (trees[i]->getBigBranchAtIndex(j)->getMiddleBranchAtIndex(k)->getInhabited())){
-                        found = true;
-                        if(trees[i]->getBigBranchAtIndex(j)->getInhabited()) {
-                            return trees[i]->getBigBranchAtIndex(j)->getMiddleBranchAtIndex(k)->getNeighboursNumber();
-                        } else{
-                            return trees[i]->getBigBranchAtIndex(j)->getMiddleBranchAtIndex(k)->getNeighboursNumber();
-                        }
-
+                for(int k = 0; k < trees[i]->getBigBranch(j)->getCount(); k++){
+                    if((trees[i]->getBigBranch(j)->getMiddleBranch(k)->getName() == inName) &&
+                       (trees[i]->getBigBranch(j)->getMiddleBranch(k)->getInhabited()))
+                    {
+                        return trees[i]->getBigBranch(j)->getMiddleBranch(k)->getNeighboursNumber();
                     }
                 }
             }
         }
-        if(!found){
-            std::cout<<"This Elph is not found"<<std::endl;
-            return -1;
-        }
+
+        std::cout<<"This Elph is not found"<<std::endl;
+        return -1;
     }
 };
 
 int main() {
 
-  //  auto home1 = new Home("Bilboo");
-    //home1->checkIn("Bilboo");
-  //  std::cout << home1->getName() << std::boolalpha << home1->getInhabited()<<std::endl;
+
     std::srand(std::time(nullptr));
-   // int count = 3+rand()%3;
-    //std::cout<<count<<std::endl;
+
 
     std::string inName;
 
@@ -217,10 +206,11 @@ int main() {
     std::cout<<"Input name of Elph of exit"<<std::endl;
     std::cin>>inName;
     while(inName!="exit") {
-        std::cout << forest->getNumberNeighboursFromName(inName) << std::endl;
+        std::cout << forest->getNeighbourCount(inName) << std::endl;
         std::cout<<"Input name of Elph of exit"<<std::endl;
         std::cin>>inName;
     }
+    delete forest;
 
 
 
